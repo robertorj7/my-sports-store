@@ -1,0 +1,39 @@
+<h1>Carrinho</h1>
+
+@if (error()) {
+  <div class="alert alert-error" role="alert">{{ error() }}</div>
+}
+
+@if (cart().items.length === 0) {
+  <div class="card empty">
+    <p>Seu carrinho está vazio.</p>
+    <a routerLink="/products" class="btn btn-primary">Ver produtos</a>
+  </div>
+} @else {
+  <div class="card">
+    @for (item of cart().items; track item.productId) {
+      <div class="line">
+        <img [src]="item.image + '?w=120&h=120&fit=crop'" [alt]="item.name" />
+        <div class="info">
+          <strong>{{ item.name }}</strong>
+          <span class="muted">{{ item.price | currency: 'BRL' }}</span>
+        </div>
+        <div class="qty">
+          <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="changeQuantity(item, -1)">−</button>
+          <span>{{ item.quantity }}</span>
+          <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="changeQuantity(item, 1)">+</button>
+        </div>
+        <strong class="line-total">{{ item.lineTotal | currency: 'BRL' }}</strong>
+        <button type="button" class="btn btn-link" [disabled]="busy()" (click)="remove(item)">Remover</button>
+      </div>
+    }
+
+    <div class="summary">
+      <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="clear()">Esvaziar carrinho</button>
+      <div class="total">
+        Total: <strong>{{ cart().total | currency: 'BRL' }}</strong>
+      </div>
+      <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="checkout()">Finalizar compra</button>
+    </div>
+  </div>
+}

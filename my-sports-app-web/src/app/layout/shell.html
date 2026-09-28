@@ -1,0 +1,23 @@
+<header class="topbar">
+  <a routerLink="/products" class="brand">⚽ My Sports Store</a>
+
+  <nav>
+    <a routerLink="/products" routerLinkActive="active">Produtos</a>
+    <a routerLink="/orders" routerLinkActive="active">Meus pedidos</a>
+    <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+      Carrinho
+      @if (itemCount() > 0) {
+        <span class="badge">{{ itemCount() }}</span>
+      }
+    </a>
+  </nav>
+
+  <div class="user">
+    <span class="user-name">Olá, {{ auth.user()?.name }}</span>
+    <button type="button" class="btn btn-ghost" (click)="logout()">Sair</button>
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>

@@ -1,0 +1,54 @@
+<section class="toolbar">
+  <h1>Produtos</h1>
+  <input
+    type="search"
+    class="search"
+    placeholder="Buscar produtos..."
+    [value]="search()"
+    (input)="onSearch($any($event.target).value)"
+  />
+</section>
+
+<div class="chips">
+  <button type="button" class="chip" [class.active]="category() === ''" (click)="selectCategory('')">Todas</button>
+  @for (c of categories(); track c) {
+    <button type="button" class="chip" [class.active]="category() === c" (click)="selectCategory(c)">{{ c }}</button>
+  }
+</div>
+
+@if (message()) {
+  <div class="alert alert-success" role="status">{{ message() }}</div>
+}
+@if (error()) {
+  <div class="alert alert-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Carregando produtos...</p>
+} @else {
+  <div class="grid">
+    @for (p of products(); track p.id) {
+      <article class="card product">
+        <img [src]="p.image + '?w=400&h=300&fit=crop'" [alt]="p.name" loading="lazy" />
+        <div class="product-body">
+          <span class="tag">{{ p.category }}</span>
+          <h2>{{ p.name }}</h2>
+          <p class="description">{{ p.description }}</p>
+          <div class="product-footer">
+            <strong class="price">{{ p.price | currency: 'BRL' }}</strong>
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="p.stock === 0 || adding() === p.id"
+              (click)="addToCart(p)"
+            >
+              {{ p.stock === 0 ? 'Esgotado' : adding() === p.id ? 'Adicionando...' : 'Adicionar' }}
+            </button>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <p class="muted">Nenhum produto encontrado.</p>
+    }
+  </div>
+}

@@ -1,0 +1,34 @@
+<h1>Meus pedidos</h1>
+
+@if (error()) {
+  <div class="alert alert-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Carregando pedidos...</p>
+} @else {
+  @for (order of orders(); track order.id) {
+    <article class="card order">
+      <header>
+        <div>
+          <strong>Pedido #{{ order.id.slice(0, 8) }}</strong>
+          <span class="muted">{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <span class="status" [attr.data-status]="order.status">{{ statusLabels[order.status] }}</span>
+      </header>
+      <ul>
+        @for (item of order.items; track item.id) {
+          <li>
+            <span>{{ item.quantity }}× {{ item.name }}</span>
+            <span>{{ item.price * item.quantity | currency: 'BRL' }}</span>
+          </li>
+        }
+      </ul>
+      <footer>
+        Total: <strong>{{ order.total | currency: 'BRL' }}</strong>
+      </footer>
+    </article>
+  } @empty {
+    <p class="muted">Você ainda não fez nenhum pedido.</p>
+  }
+}
