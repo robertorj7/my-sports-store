@@ -10,7 +10,7 @@ Frontend Angular 22 da My Sports Store.
 
 As chamadas para `/api` são redirecionadas para a API pelo `proxy.conf.json`, então não é preciso configurar CORS em desenvolvimento.
 
-Usuário admin criado pelo DataSeeder: `admin@sportsstore.com` / `Admin123!`.
+O usuário admin é criado pelo DataSeeder a partir das variáveis `ADMIN_EMAIL` e `ADMIN_PASSWORD` da API.
 
 ## Telas
 

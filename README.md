@@ -148,10 +148,11 @@ src/app
 ### 1. Banco de dados
 
 ```bash
+cp .env.example .env   # preencha POSTGRES_PASSWORD e SONAR_DB_PASSWORD
 docker compose up -d postgres
 ```
 
-Isso sobe o PostgreSQL em `localhost:5432` com banco, usuário e senha `sportsstore`. Os valores podem ser alterados pelas variáveis `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_PORT`.
+Isso sobe o PostgreSQL em `127.0.0.1:5432` com banco e usuário `sportsstore`. As senhas não têm valor padrão: o `docker compose` recusa subir enquanto `POSTGRES_PASSWORD` e `SONAR_DB_PASSWORD` não estiverem definidas no `.env`. Banco, usuário e porta podem ser alterados por `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PORT`.
 
 ### 2. Backend
 
@@ -163,20 +164,22 @@ A API precisa das variáveis de ambiente abaixo:
 | `JWT_EXPIRATION` | Sim | `86400000` | Validade do token em ms (24h) |
 | `CORS_URI` | Sim | `http://localhost:4200` | Origens permitidas, separadas por vírgula |
 | `DB_URL` | Não | `jdbc:postgresql://localhost:5432/sportsstore` | URL do banco |
-| `DB_USERNAME` / `DB_PASSWORD` | Não | `sportsstore` | Credenciais do banco |
+| `DB_PASSWORD` | Sim | — | Senha do banco (a mesma de `POSTGRES_PASSWORD`) |
+| `DB_USERNAME` | Não | `sportsstore` | Usuário do banco |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Não | — | Se ambas forem definidas, cria esse administrador na inicialização |
 
 ```bash
 cd my-sports-store-api
-export JWT_SECRET=uma-chave-secreta-com-pelo-menos-32-bytes
+export JWT_SECRET=$(openssl rand -base64 48)
 export JWT_EXPIRATION=86400000
 export CORS_URI=http://localhost:4200
+export DB_PASSWORD=<mesma senha de POSTGRES_PASSWORD>
+export ADMIN_EMAIL=<e-mail do admin>
+export ADMIN_PASSWORD=<senha forte do admin>
 ./mvnw spring-boot:run
 ```
 
-A API fica disponível em `http://localhost:8080`. Na primeira execução são criados os produtos de exemplo e o usuário administrador:
-
-- **E-mail:** `admin@sportsstore.com`
-- **Senha:** `Admin123!`
+A API fica disponível em `http://localhost:8080`. Na primeira execução são criados os produtos de exemplo e, se `ADMIN_EMAIL` e `ADMIN_PASSWORD` estiverem definidas, o usuário administrador. Sem elas, nenhum administrador é criado.
 
 ### 3. Frontend
 
@@ -186,7 +189,7 @@ npm install
 npm start
 ```
 
-Acesse `http://localhost:4200` e faça login com o administrador acima ou crie uma conta em **Cadastre-se**.
+Acesse `http://localhost:4200` e faça login com o administrador configurado ou crie uma conta em **Cadastre-se**.
 
 Build de produção: `npm run build` (saída em `dist/my-sports-app-web`).
 

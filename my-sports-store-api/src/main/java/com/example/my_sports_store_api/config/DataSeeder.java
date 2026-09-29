@@ -6,6 +6,8 @@ import com.example.my_sports_store_api.model.User;
 import com.example.my_sports_store_api.repository.ProductRepository;
 import com.example.my_sports_store_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
@@ -23,6 +26,12 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.email:}")
+    private String adminEmail;
+
+    @Value("${app.admin.password:}")
+    private String adminPassword;
 
     @Override
     public void run(String... args) {
@@ -70,13 +79,17 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdmin() {
-        if (userRepository.existsByEmailIgnoreCase("admin@sportsstore.com")) {
+        if (adminEmail.isBlank() || adminPassword.isBlank()) {
+            log.info("ADMIN_EMAIL/ADMIN_PASSWORD not set, skipping admin user creation");
+            return;
+        }
+        if (userRepository.existsByEmailIgnoreCase(adminEmail)) {
             return;
         }
 
         userRepository.save(User.builder()
-                .email("admin@sportsstore.com")
-                .password(passwordEncoder.encode("Admin123!"))
+                .email(adminEmail)
+                .password(passwordEncoder.encode(adminPassword))
                 .name("Store Admin")
                 .roles(Set.of(Role.ROLE_ADMIN, Role.ROLE_USER))
                 .build());
