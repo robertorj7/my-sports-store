@@ -1,5 +1,6 @@
 package com.example.my_sports_store_api.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,8 +26,10 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(nullable = false)
     private String name;
     private String description;
+    @Column(nullable = false)
     private BigDecimal price;
     private String image;
     private String color;
