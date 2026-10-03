@@ -6,7 +6,7 @@ Loja virtual de artigos esportivos composta por uma API REST em Spring Boot e um
 my-sports-store/
 ├── my-sports-store-api/   # Backend — Spring Boot 3.5 / Java 21
 ├── my-sports-app-web/     # Frontend — Angular 22
-└── docker-compose.yml     # PostgreSQL + SonarQube
+└── docker-compose.yml     # PostgreSQL
 ```
 
 ## Funcionalidades
@@ -52,7 +52,7 @@ my-sports-store/
 - **PostgreSQL 16**: banco de dados
 - **Lombok**: redução de código repetitivo
 - **JUnit 5**, **Mockito**, **Spring Security Test** e **Testcontainers**: testes
-- **JaCoCo** e **SonarQube**: cobertura e qualidade de código
+- **JaCoCo**: cobertura de código
 - **Maven** (wrapper `mvnw` incluso)
 
 ### Frontend (`my-sports-app-web`)
@@ -65,7 +65,7 @@ my-sports-store/
 - **Vitest**: testes unitários
 
 ### Infraestrutura
-- **Docker Compose**: PostgreSQL da aplicação, SonarQube e o banco do SonarQube
+- **Docker Compose**: PostgreSQL da aplicação
 
 ## Arquitetura
 
@@ -148,11 +148,11 @@ src/app
 ### 1. Banco de dados
 
 ```bash
-cp .env.example .env   # preencha POSTGRES_PASSWORD e SONAR_DB_PASSWORD
+cp .env.example .env   # preencha POSTGRES_PASSWORD
 docker compose up -d postgres
 ```
 
-Isso sobe o PostgreSQL em `127.0.0.1:5432` com banco e usuário `sportsstore`. As senhas não têm valor padrão: o `docker compose` recusa subir enquanto `POSTGRES_PASSWORD` e `SONAR_DB_PASSWORD` não estiverem definidas no `.env`. Banco, usuário e porta podem ser alterados por `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PORT`.
+Isso sobe o PostgreSQL em `127.0.0.1:5432` com banco e usuário `sportsstore`. A senha não tem valor padrão: o `docker compose` recusa subir enquanto `POSTGRES_PASSWORD` não estiver definida no `.env`. Banco, usuário e porta podem ser alterados por `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PORT`.
 
 ### 2. Backend
 
@@ -206,17 +206,3 @@ npm test -- --watch=false
 ```
 
 > O teste de contexto do backend (`MySportsStoreApiApplicationTests`) usa Testcontainers, então o Docker precisa estar rodando.
-
-### Análise com SonarQube
-
-```bash
-sudo sysctl -w vm.max_map_count=262144   # exigido pelo Elasticsearch do SonarQube
-docker compose up -d sonarqube
-```
-
-Acesse `http://localhost:9000`, gere um token e rode:
-
-```bash
-cd my-sports-store-api
-./mvnw verify sonar:sonar -Dsonar.token=<seu-token>
-```
