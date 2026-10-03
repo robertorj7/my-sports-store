@@ -1,11 +1,15 @@
 package com.example.my_sports_store_api.security;
 
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,5 +75,25 @@ class JwtServiceTest {
 
         assertThatThrownBy(() -> jwtService.extractUsername(token))
                 .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void isTokenValid_forTokenWithoutSubject_returnsFalse() {
+        String token = Jwts.builder()
+                .expiration(new Date(System.currentTimeMillis() + 60_000))
+                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        assertThat(jwtService.isTokenValid(token, userDetails)).isFalse();
+    }
+
+    @Test
+    void isTokenValid_forTokenWithoutExpiration_returnsFalse() {
+        String token = Jwts.builder()
+                .subject("user@example.com")
+                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        assertThat(jwtService.isTokenValid(token, userDetails)).isFalse();
     }
 }

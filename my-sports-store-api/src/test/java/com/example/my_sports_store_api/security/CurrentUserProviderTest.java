@@ -9,13 +9,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,5 +61,22 @@ class CurrentUserProviderTest {
         assertThatThrownBy(() -> currentUserProvider.getCurrentUser())
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("missing@example.com");
+    }
+
+    @Test
+    void getCurrentUser_whenNoAuthentication_throwsAuthenticationCredentialsNotFoundException() {
+        assertThatThrownBy(() -> currentUserProvider.getCurrentUser())
+                .isInstanceOf(AuthenticationCredentialsNotFoundException.class);
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void getCurrentUser_whenAnonymousAuthentication_throwsAuthenticationCredentialsNotFoundException() {
+        SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken(
+                "key", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+
+        assertThatThrownBy(() -> currentUserProvider.getCurrentUser())
+                .isInstanceOf(AuthenticationCredentialsNotFoundException.class);
+        verifyNoInteractions(userRepository);
     }
 }
