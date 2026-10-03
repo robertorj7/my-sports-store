@@ -156,7 +156,7 @@ Isso sobe o PostgreSQL em `127.0.0.1:5432` com banco e usuário `sportsstore`. A
 
 ### 2. Backend
 
-A API precisa das variáveis de ambiente abaixo:
+A API precisa das variáveis de ambiente abaixo. Elas podem ser exportadas no shell ou definidas no `.env` da raiz do projeto, que a API carrega automaticamente (`spring.config.import`):
 
 | Variável | Obrigatória | Exemplo | Descrição |
 |---|---|---|---|
