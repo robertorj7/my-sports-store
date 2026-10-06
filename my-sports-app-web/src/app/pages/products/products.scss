@@ -94,9 +94,30 @@
 
 .product-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  input {
+    width: 3rem;
+    text-align: center;
+    padding: 0.35rem 0.25rem;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
 }
 
 .price {

@@ -36,6 +36,37 @@
           <p class="description">{{ p.description }}</p>
           <div class="product-footer">
             <strong class="price">{{ p.price | currency: 'BRL' }}</strong>
+            @if (p.stock > 0) {
+              <div class="qty">
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  aria-label="Diminuir quantidade"
+                  [disabled]="quantityOf(p) <= 1 || adding() === p.id"
+                  (click)="changeQuantity(p, -1)"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  [max]="maxOf(p)"
+                  [value]="quantityOf(p)"
+                  [disabled]="adding() === p.id"
+                  (change)="setQuantity(p, +$any($event.target).value); $any($event.target).value = quantityOf(p)"
+                  aria-label="Quantidade"
+                />
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  aria-label="Aumentar quantidade"
+                  [disabled]="quantityOf(p) >= maxOf(p) || adding() === p.id"
+                  (click)="changeQuantity(p, 1)"
+                >
+                  +
+                </button>
+              </div>
+            }
             <button
               type="button"
               class="btn btn-primary"
