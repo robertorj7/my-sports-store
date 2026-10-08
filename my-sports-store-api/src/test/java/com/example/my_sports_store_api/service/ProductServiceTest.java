@@ -1,6 +1,7 @@
 package com.example.my_sports_store_api.service;
 
 import com.example.my_sports_store_api.dto.ProductRequest;
+import com.example.my_sports_store_api.exception.BadRequestException;
 import com.example.my_sports_store_api.exception.ResourceNotFoundException;
 import com.example.my_sports_store_api.model.Product;
 import com.example.my_sports_store_api.repository.ProductRepository;
@@ -138,7 +139,7 @@ class ProductServiceTest {
     @Test
     void create_savesNewProductWithRequestValues() {
         ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.valueOf(19.99),
-                "img.png", "red", "sports", 5);
+                "img.png", "red", "sports", 5, null);
         when(productRepository.save(any(Product.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -151,10 +152,101 @@ class ProductServiceTest {
     }
 
     @Test
+    void create_withPromotionalPriceNotLowerThanPrice_throwsBadRequestException() {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.TEN);
+
+        assertThatThrownBy(() -> productService.create(request))
+                .isInstanceOf(BadRequestException.class);
+
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void create_withValidPromotionalPrice_savesIt() {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.valueOf(8));
+        when(productRepository.save(any(Product.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Product result = productService.create(request);
+
+        assertThat(result.getPromotionalPrice()).isEqualByComparingTo("8");
+        assertThat(result.isOnPromotion()).isTrue();
+        assertThat(result.getEffectivePrice()).isEqualByComparingTo("8");
+    }
+
+    @Test
+    void create_withPromotionalPriceHigherThanPrice_throwsBadRequestException() {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.valueOf(15));
+
+        assertThatThrownBy(() -> productService.create(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Promotional price");
+
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void update_withPromotionalPriceNotLowerThanPrice_keepsProductUnchanged() {
+        Product existing = product("1", "Old Name", "sports");
+        existing.setPromotionalPrice(BigDecimal.valueOf(8));
+        ProductRequest request = new ProductRequest("New Name", "desc", BigDecimal.TEN,
+                "img.png", "blue", "apparel", 3, BigDecimal.valueOf(11));
+        when(productRepository.findById("1")).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> productService.update("1", request))
+                .isInstanceOf(BadRequestException.class);
+
+        assertThat(existing.getName()).isEqualTo("Old Name");
+        assertThat(existing.getPromotionalPrice()).isEqualByComparingTo("8");
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void update_withoutPromotionalPrice_endsPromotion() {
+        Product existing = product("1", "Ball", "sports");
+        existing.setPromotionalPrice(BigDecimal.valueOf(8));
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, null);
+        when(productRepository.findById("1")).thenReturn(Optional.of(existing));
+        when(productRepository.save(existing)).thenReturn(existing);
+
+        Product result = productService.update("1", request);
+
+        assertThat(result.getPromotionalPrice()).isNull();
+        assertThat(result.isOnPromotion()).isFalse();
+        assertThat(result.getEffectivePrice()).isEqualByComparingTo(BigDecimal.TEN);
+    }
+
+    @Test
+    void findPromotions_whenNoneExist_returnsEmptyList() {
+        when(productRepository.findByPromotionalPriceIsNotNull()).thenReturn(List.of());
+
+        assertThat(productService.findPromotions()).isEmpty();
+    }
+
+    @Test
+    void findPromotions_returnsOnlyValidPromotionsSortedByBiggestDiscount() {
+        Product small = product("1", "Small", "sports");
+        small.setPromotionalPrice(BigDecimal.valueOf(9));
+        Product big = product("2", "Big", "sports");
+        big.setPromotionalPrice(BigDecimal.valueOf(5));
+        Product invalid = product("3", "Invalid", "sports");
+        invalid.setPromotionalPrice(BigDecimal.valueOf(12));
+        when(productRepository.findByPromotionalPriceIsNotNull()).thenReturn(List.of(small, invalid, big));
+
+        List<Product> result = productService.findPromotions();
+
+        assertThat(result).containsExactly(big, small);
+    }
+
+    @Test
     void update_whenProductExists_updatesAndSaves() {
         Product existing = product("1", "Old Name", "sports");
         ProductRequest request = new ProductRequest("New Name", "desc", BigDecimal.valueOf(29.99),
-                "img.png", "blue", "apparel", 3);
+                "img.png", "blue", "apparel", 3, null);
         when(productRepository.findById("1")).thenReturn(Optional.of(existing));
         when(productRepository.save(existing)).thenReturn(existing);
 
@@ -169,7 +261,7 @@ class ProductServiceTest {
     @Test
     void update_whenProductDoesNotExist_throwsResourceNotFoundException() {
         ProductRequest request = new ProductRequest("New Name", "desc", BigDecimal.TEN,
-                "img.png", "blue", "apparel", 3);
+                "img.png", "blue", "apparel", 3, null);
         when(productRepository.findById("missing")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.update("missing", request))

@@ -88,6 +88,64 @@ class CartServiceTest {
     }
 
     @Test
+    void getCart_whenProductIsOnPromotion_usesPromotionalPrice() {
+        Cart cart = new Cart(null, "user-1", new java.util.ArrayList<>(List.of(new CartItem("p1", 2))));
+        when(cartRepository.findByUserId("user-1")).thenReturn(Optional.of(cart));
+        Product product = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        product.setPromotionalPrice(BigDecimal.valueOf(8));
+        when(productService.findAllByIds(List.of("p1"))).thenReturn(Map.of("p1", product));
+
+        CartResponse response = cartService.getCart();
+
+        CartResponse.CartLineItem lineItem = response.items().get(0);
+        assertThat(lineItem.price()).isEqualByComparingTo(BigDecimal.valueOf(8));
+        assertThat(lineItem.originalPrice()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(response.total()).isEqualByComparingTo(BigDecimal.valueOf(16));
+    }
+
+    @Test
+    void getCart_whenProductIsNotOnPromotion_originalPriceEqualsPrice() {
+        Cart cart = new Cart(null, "user-1", new java.util.ArrayList<>(List.of(new CartItem("p1", 1))));
+        when(cartRepository.findByUserId("user-1")).thenReturn(Optional.of(cart));
+        Product product = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        when(productService.findAllByIds(List.of("p1"))).thenReturn(Map.of("p1", product));
+
+        CartResponse.CartLineItem lineItem = cartService.getCart().items().get(0);
+
+        assertThat(lineItem.price()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(lineItem.originalPrice()).isEqualByComparingTo(BigDecimal.valueOf(10));
+    }
+
+    @Test
+    void getCart_whenPromotionalPriceIsNotLower_chargesRegularPrice() {
+        Cart cart = new Cart(null, "user-1", new java.util.ArrayList<>(List.of(new CartItem("p1", 2))));
+        when(cartRepository.findByUserId("user-1")).thenReturn(Optional.of(cart));
+        Product product = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        product.setPromotionalPrice(BigDecimal.valueOf(12));
+        when(productService.findAllByIds(List.of("p1"))).thenReturn(Map.of("p1", product));
+
+        CartResponse response = cartService.getCart();
+
+        assertThat(response.items().get(0).price()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(response.total()).isEqualByComparingTo(BigDecimal.valueOf(20));
+    }
+
+    @Test
+    void getCart_withPromotionalAndRegularProducts_sumsEffectivePrices() {
+        Cart cart = new Cart(null, "user-1", new java.util.ArrayList<>(List.of(
+                new CartItem("p1", 2), new CartItem("p2", 1))));
+        when(cartRepository.findByUserId("user-1")).thenReturn(Optional.of(cart));
+        Product promo = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        promo.setPromotionalPrice(BigDecimal.valueOf(6));
+        Product regular = product("p2", "Bat", BigDecimal.valueOf(30), 5);
+        when(productService.findAllByIds(List.of("p1", "p2"))).thenReturn(Map.of("p1", promo, "p2", regular));
+
+        CartResponse response = cartService.getCart();
+
+        assertThat(response.total()).isEqualByComparingTo(BigDecimal.valueOf(42));
+    }
+
+    @Test
     void getCart_whenProductNoLongerExists_excludesItFromResponse() {
         Cart cart = new Cart(null, "user-1", new java.util.ArrayList<>(List.of(new CartItem("deleted", 1))));
         when(cartRepository.findByUserId("user-1")).thenReturn(Optional.of(cart));

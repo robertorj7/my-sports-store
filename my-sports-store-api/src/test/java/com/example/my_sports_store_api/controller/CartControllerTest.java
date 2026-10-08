@@ -56,7 +56,7 @@ class CartControllerTest {
     void addOrUpdateItem_withValidBody_returnsUpdatedCart() throws Exception {
         CartItemRequest request = new CartItemRequest("p1", 2);
         CartResponse.CartLineItem lineItem = new CartResponse.CartLineItem(
-                "p1", "Ball", "img.png", BigDecimal.TEN, 2, BigDecimal.valueOf(20));
+                "p1", "Ball", "img.png", BigDecimal.TEN, BigDecimal.TEN, 2, BigDecimal.valueOf(20));
         CartResponse response = new CartResponse(List.of(lineItem), BigDecimal.valueOf(20));
         when(cartService.addOrUpdateItem(any(CartItemRequest.class))).thenReturn(response);
 

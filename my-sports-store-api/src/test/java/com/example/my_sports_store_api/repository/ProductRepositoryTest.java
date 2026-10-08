@@ -33,14 +33,14 @@ class ProductRepositoryTest {
     @Test
     void save_withPriceAndName_persistsProduct() {
         Product saved = productRepository.saveAndFlush(
-                new Product(null, "Ball", null, new BigDecimal("10.00"), null, null, "Futebol", 1));
+                new Product(null, "Ball", null, new BigDecimal("10.00"), null, null, "Futebol", 1, null));
 
         assertThat(saved.getId()).isNotNull();
     }
 
     @Test
     void save_withNullPrice_isRejectedByDatabase() {
-        Product product = new Product(null, "Ball", null, null, null, null, "Futebol", 1);
+        Product product = new Product(null, "Ball", null, null, null, null, "Futebol", 1, null);
 
         assertThatThrownBy(() -> productRepository.saveAndFlush(product))
                 .isInstanceOf(DataIntegrityViolationException.class);
@@ -48,9 +48,20 @@ class ProductRepositoryTest {
 
     @Test
     void save_withNullName_isRejectedByDatabase() {
-        Product product = new Product(null, null, null, new BigDecimal("10.00"), null, null, "Futebol", 1);
+        Product product = new Product(null, null, null, new BigDecimal("10.00"), null, null, "Futebol", 1, null);
 
         assertThatThrownBy(() -> productRepository.saveAndFlush(product))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void findByPromotionalPriceIsNotNull_returnsOnlyProductsWithPromotionalPrice() {
+        productRepository.saveAllAndFlush(java.util.List.of(
+                new Product(null, "Promo", null, new BigDecimal("10.00"), null, null, "Futebol", 1, new BigDecimal("8.00")),
+                new Product(null, "Regular", null, new BigDecimal("10.00"), null, null, "Futebol", 1, null)));
+
+        assertThat(productRepository.findByPromotionalPriceIsNotNull())
+                .extracting(Product::getName)
+                .containsExactly("Promo");
     }
 }

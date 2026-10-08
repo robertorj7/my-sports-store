@@ -1,6 +1,7 @@
 package com.example.my_sports_store_api.controller;
 
 import com.example.my_sports_store_api.dto.ProductRequest;
+import com.example.my_sports_store_api.exception.BadRequestException;
 import com.example.my_sports_store_api.exception.GlobalExceptionHandler;
 import com.example.my_sports_store_api.exception.ResourceNotFoundException;
 import com.example.my_sports_store_api.model.Product;
@@ -19,7 +20,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -75,6 +78,33 @@ class ProductControllerTest {
     }
 
     @Test
+    void findPromotions_returnsPromotionsWithEffectivePrice() throws Exception {
+        Product product = product("1", "Ball");
+        product.setPromotionalPrice(BigDecimal.valueOf(8));
+        when(productService.findPromotions()).thenReturn(List.of(product));
+
+        mockMvc.perform(get("/api/products/promotions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("1"))
+                .andExpect(jsonPath("$[0].price").value(10))
+                .andExpect(jsonPath("$[0].promotionalPrice").value(8))
+                .andExpect(jsonPath("$[0].effectivePrice").value(8))
+                .andExpect(jsonPath("$[0].onPromotion").value(true))
+                .andExpect(jsonPath("$[0].discountRatio").doesNotExist());
+
+        verify(productService, never()).findById(any());
+    }
+
+    @Test
+    void findPromotions_whenNone_returnsEmptyList() throws Exception {
+        when(productService.findPromotions()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/products/promotions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
     void findById_whenFound_returnsProduct() throws Exception {
         when(productService.findById("1")).thenReturn(product("1", "Ball"));
 
@@ -95,7 +125,7 @@ class ProductControllerTest {
     @Test
     void create_withValidBody_returns201() throws Exception {
         ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.valueOf(19.99),
-                "img.png", "red", "sports", 5);
+                "img.png", "red", "sports", 5, null);
         when(productService.create(any(ProductRequest.class))).thenReturn(product("1", "Ball"));
 
         mockMvc.perform(post("/api/products")
@@ -108,7 +138,7 @@ class ProductControllerTest {
     @Test
     void create_withInvalidBody_returns400() throws Exception {
         ProductRequest invalidRequest = new ProductRequest("", "desc", BigDecimal.valueOf(-1),
-                "img.png", "red", "", -1);
+                "img.png", "red", "", -1, null);
 
         mockMvc.perform(post("/api/products")
                         .contentType("application/json")
@@ -117,9 +147,52 @@ class ProductControllerTest {
     }
 
     @Test
+    void create_withNegativePromotionalPrice_returns400() throws Exception {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.valueOf(-1));
+
+        mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    void create_whenPromotionalPriceIsRejectedByService_returns400() throws Exception {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.valueOf(12));
+        when(productService.create(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException("Promotional price must be lower than the regular price"));
+
+        mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Promotional price must be lower than the regular price"));
+    }
+
+    @Test
+    void update_withPromotionalPrice_returnsProductOnPromotion() throws Exception {
+        ProductRequest request = new ProductRequest("Ball", "desc", BigDecimal.TEN,
+                "img.png", "red", "sports", 5, BigDecimal.valueOf(7));
+        Product updated = product("1", "Ball");
+        updated.setPromotionalPrice(BigDecimal.valueOf(7));
+        when(productService.update(eq("1"), any(ProductRequest.class))).thenReturn(updated);
+
+        mockMvc.perform(put("/api/products/1")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.effectivePrice").value(7))
+                .andExpect(jsonPath("$.onPromotion").value(true));
+    }
+
+    @Test
     void update_withValidBody_returnsUpdatedProduct() throws Exception {
         ProductRequest request = new ProductRequest("Ball v2", "desc", BigDecimal.valueOf(29.99),
-                "img.png", "blue", "sports", 3);
+                "img.png", "blue", "sports", 3, null);
         when(productService.update(eq("1"), any(ProductRequest.class))).thenReturn(product("1", "Ball v2"));
 
         mockMvc.perform(put("/api/products/1")

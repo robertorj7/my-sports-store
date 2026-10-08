@@ -123,6 +123,36 @@ class OrderServiceTest {
     }
 
     @Test
+    void checkout_whenProductIsOnPromotion_chargesPromotionalPrice() {
+        Cart cart = new Cart(null, "user-1", new ArrayList<>(List.of(new CartItem("p1", 2))));
+        when(cartService.getOrCreateCart()).thenReturn(cart);
+        Product product = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        product.setPromotionalPrice(BigDecimal.valueOf(7));
+        when(productRepository.findAllById(List.of("p1"))).thenReturn(List.of(product));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Order order = orderService.checkout();
+
+        assertThat(order.getItems().get(0).getPrice()).isEqualByComparingTo(BigDecimal.valueOf(7));
+        assertThat(order.getTotal()).isEqualByComparingTo(BigDecimal.valueOf(14));
+    }
+
+    @Test
+    void checkout_whenPromotionalPriceIsNotLower_chargesRegularPrice() {
+        Cart cart = new Cart(null, "user-1", new ArrayList<>(List.of(new CartItem("p1", 1))));
+        when(cartService.getOrCreateCart()).thenReturn(cart);
+        Product product = product("p1", "Ball", BigDecimal.valueOf(10), 5);
+        product.setPromotionalPrice(BigDecimal.valueOf(10));
+        when(productRepository.findAllById(List.of("p1"))).thenReturn(List.of(product));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Order order = orderService.checkout();
+
+        assertThat(order.getItems().get(0).getPrice()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(order.getTotal()).isEqualByComparingTo(BigDecimal.valueOf(10));
+    }
+
+    @Test
     void findMyOrders_returnsOrdersForCurrentUserSortedByRepository() {
         Order order = new Order("o1", "user-1", List.of(), BigDecimal.TEN, OrderStatus.PENDING, Instant.now());
         when(orderRepository.findByUserIdOrderByCreatedAtDesc("user-1")).thenReturn(List.of(order));
