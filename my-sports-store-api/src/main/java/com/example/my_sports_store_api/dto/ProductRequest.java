@@ -14,6 +14,7 @@ public record ProductRequest(
         String image,
         String color,
         @NotBlank String category,
-        @Min(0) int stock
+        @Min(0) int stock,
+        @DecimalMin(value = "0.0", inclusive = true) BigDecimal promotionalPrice
 ) {
 }

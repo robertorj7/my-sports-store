@@ -12,7 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 @Table(name = "products", indexes = @Index(name = "idx_products_category", columnList = "category"))
@@ -35,4 +38,20 @@ public class Product {
     private String color;
     private String category;
     private int stock;
+    private BigDecimal promotionalPrice;
+
+    public BigDecimal getEffectivePrice() {
+        return isOnPromotion() ? promotionalPrice : price;
+    }
+
+    public boolean isOnPromotion() {
+        return promotionalPrice != null && price != null && promotionalPrice.compareTo(price) < 0;
+    }
+
+    @JsonIgnore
+    public BigDecimal getDiscountRatio() {
+        return isOnPromotion()
+                ? price.subtract(promotionalPrice).divide(price, 4, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+    }
 }

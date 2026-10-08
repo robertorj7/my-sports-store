@@ -53,7 +53,7 @@ public class OrderService {
             if (product.getStock() < item.getQuantity()) {
                 throw new BadRequestException("Not enough stock for " + product.getName());
             }
-            return new OrderItem(product.getId(), product.getName(), product.getPrice(), item.getQuantity());
+            return new OrderItem(product.getId(), product.getName(), product.getEffectivePrice(), item.getQuantity());
         }).toList();
 
         orderItems.forEach(item -> {

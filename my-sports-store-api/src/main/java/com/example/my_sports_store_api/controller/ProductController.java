@@ -29,6 +29,11 @@ public class ProductController {
         return productService.findCategories();
     }
 
+    @GetMapping("/promotions")
+    public List<Product> findPromotions() {
+        return productService.findPromotions();
+    }
+
     @GetMapping("/{id}")
     public Product findById(@PathVariable String id) {
         return productService.findById(id);

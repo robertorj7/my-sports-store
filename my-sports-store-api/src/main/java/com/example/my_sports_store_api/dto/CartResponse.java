@@ -12,6 +12,7 @@ public record CartResponse(
             String name,
             String image,
             BigDecimal price,
+            BigDecimal originalPrice,
             int quantity,
             BigDecimal lineTotal
     ) {

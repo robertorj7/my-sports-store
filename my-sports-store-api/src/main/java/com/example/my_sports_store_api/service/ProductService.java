@@ -1,6 +1,7 @@
 package com.example.my_sports_store_api.service;
 
 import com.example.my_sports_store_api.dto.ProductRequest;
+import com.example.my_sports_store_api.exception.BadRequestException;
 import com.example.my_sports_store_api.exception.ResourceNotFoundException;
 import com.example.my_sports_store_api.model.Product;
 import com.example.my_sports_store_api.repository.ProductRepository;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -33,6 +35,13 @@ public class ProductService {
             return productRepository.findByNameContainingIgnoreCase(search);
         }
         return productRepository.findAll();
+    }
+
+    public List<Product> findPromotions() {
+        return productRepository.findByPromotionalPriceIsNotNull().stream()
+                .filter(Product::isOnPromotion)
+                .sorted(Comparator.comparing(Product::getDiscountRatio).reversed())
+                .collect(Collectors.toList());
     }
 
     public Product findById(String id) {
@@ -74,6 +83,9 @@ public class ProductService {
     }
 
     private void applyRequest(Product product, ProductRequest request) {
+        if (request.promotionalPrice() != null && request.promotionalPrice().compareTo(request.price()) >= 0) {
+            throw new BadRequestException("Promotional price must be lower than the regular price");
+        }
         product.setName(request.name());
         product.setDescription(request.description());
         product.setPrice(request.price());
@@ -81,5 +93,6 @@ public class ProductService {
         product.setColor(request.color());
         product.setCategory(request.category());
         product.setStock(request.stock());
+        product.setPromotionalPrice(request.promotionalPrice());
     }
 }

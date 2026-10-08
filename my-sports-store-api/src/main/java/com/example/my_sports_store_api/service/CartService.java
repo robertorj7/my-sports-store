@@ -85,10 +85,11 @@ public class CartService {
                 .filter(item -> products.containsKey(item.getProductId()))
                 .map(item -> {
                     Product product = products.get(item.getProductId());
-                    BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+                    BigDecimal price = product.getEffectivePrice();
+                    BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(item.getQuantity()));
                     return new CartResponse.CartLineItem(
                             product.getId(), product.getName(), product.getImage(),
-                            product.getPrice(), item.getQuantity(), lineTotal);
+                            price, product.getPrice(), item.getQuantity(), lineTotal);
                 })
                 .collect(Collectors.toList());
 
