@@ -1,14 +1,17 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { errorMessage } from '../../core/error-message';
 import { Product } from '../../core/models';
 import { CartService, ProductService } from '../../core/store.service';
+import { discountPercent } from '../../core/pricing';
+import { PromoCarousel } from './promo-carousel/promo-carousel';
 
 @Component({
   selector: 'app-products',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, RouterLink, PromoCarousel],
   templateUrl: './products.html',
   styleUrl: './products.scss',
 })
@@ -18,6 +21,8 @@ export class Products implements OnInit {
   private readonly searchInput = new Subject<string>();
 
   protected readonly products = signal<Product[]>([]);
+  protected readonly promotions = signal<Product[]>([]);
+  protected readonly discountPercent = discountPercent;
   protected readonly categories = signal<string[]>([]);
   protected readonly category = signal('');
   protected readonly search = signal('');
@@ -36,6 +41,7 @@ export class Products implements OnInit {
 
   ngOnInit(): void {
     this.productService.categories().subscribe({ next: (c) => this.categories.set(c) });
+    this.productService.promotions().subscribe({ next: (p) => this.promotions.set(p) });
     this.load();
   }
 

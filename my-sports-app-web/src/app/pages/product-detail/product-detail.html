@@ -1,0 +1,81 @@
+<a routerLink="/products" class="back">‹ Voltar para produtos</a>
+
+@if (message()) {
+  <div class="alert alert-success" role="status">{{ message() }} <a routerLink="/cart">Ver carrinho</a></div>
+}
+@if (error()) {
+  <div class="alert alert-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Carregando produto...</p>
+} @else if (product(); as p) {
+  <article class="card detail">
+    <img [src]="p.image + '?w=800&h=600&fit=crop'" [alt]="p.name" />
+
+    <div class="info">
+      <span class="tag">{{ p.category }}</span>
+      <h1>{{ p.name }}</h1>
+      <p class="description">{{ p.description }}</p>
+
+      <dl class="specs">
+        @if (p.color) {
+          <div><dt>Cor</dt><dd>{{ p.color }}</dd></div>
+        }
+        <div>
+          <dt>Disponibilidade</dt>
+          <dd>{{ p.stock > 0 ? p.stock + ' em estoque' : 'Esgotado' }}</dd>
+        </div>
+      </dl>
+
+      <div class="price">
+        @if (p.onPromotion) {
+          <span>
+            <s class="old-price">{{ p.price | currency: 'BRL' }}</s>
+            <span class="discount-badge">-{{ discountPercent(p) }}%</span>
+          </span>
+        }
+        <strong>{{ p.effectivePrice | currency: 'BRL' }}</strong>
+      </div>
+
+      @if (p.stock > 0) {
+        <div class="actions">
+          <div class="qty">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              aria-label="Diminuir quantidade"
+              [disabled]="quantity() <= 1 || adding()"
+              (click)="changeQuantity(-1)"
+            >
+              −
+            </button>
+            <input
+              type="number"
+              min="1"
+              [max]="max()"
+              [value]="quantity()"
+              [disabled]="adding()"
+              (change)="setQuantity(+$any($event.target).value); $any($event.target).value = quantity()"
+              aria-label="Quantidade"
+            />
+            <button
+              type="button"
+              class="btn btn-ghost"
+              aria-label="Aumentar quantidade"
+              [disabled]="quantity() >= max() || adding()"
+              (click)="changeQuantity(1)"
+            >
+              +
+            </button>
+          </div>
+          <button type="button" class="btn btn-primary" [disabled]="adding()" (click)="addToCart(p)">
+            {{ adding() ? 'Adicionando...' : 'Adicionar ao carrinho' }}
+          </button>
+        </div>
+      } @else {
+        <button type="button" class="btn btn-primary" disabled>Esgotado</button>
+      }
+    </div>
+  </article>
+}

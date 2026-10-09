@@ -1,0 +1,152 @@
+.carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.track {
+  display: flex;
+  transition: transform 0.5s ease;
+  touch-action: pan-y;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.slide {
+  flex: 0 0 100%;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 42%);
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 260px;
+  padding: 1.75rem 4rem;
+  color: #fff;
+  text-decoration: none;
+  user-select: none;
+
+  img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transform: rotate(-2deg);
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.3rem, 3vw, 2.2rem);
+    line-height: 1.15;
+  }
+}
+
+.badge {
+  background: #ffd400;
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.category {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.price {
+  display: flex;
+  flex-direction: column;
+  margin: 0.25rem 0 0.5rem;
+  line-height: 1.1;
+
+  strong {
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+  }
+}
+
+.cta {
+  background: #fff;
+  color: #1a1a1a;
+  font-weight: 700;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  &.prev {
+    left: 0.75rem;
+  }
+
+  &.next {
+    right: 0.75rem;
+  }
+}
+
+.dots {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: width 0.3s;
+
+  &.active {
+    width: 1.6rem;
+    background: #fff;
+  }
+}
+
+@media (max-width: 640px) {
+  .slide {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1.25rem 2.25rem;
+
+    img {
+      display: none;
+    }
+  }
+
+  .arrow {
+    display: none;
+  }
+}

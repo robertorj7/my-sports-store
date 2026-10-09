@@ -16,7 +16,12 @@
         <img [src]="item.image + '?w=120&h=120&fit=crop'" [alt]="item.name" />
         <div class="info">
           <strong>{{ item.name }}</strong>
-          <span class="muted">{{ item.price | currency: 'BRL' }}</span>
+          <span class="muted">
+            @if (item.price < item.originalPrice) {
+              <s class="old-price">{{ item.originalPrice | currency: 'BRL' }}</s>
+            }
+            {{ item.price | currency: 'BRL' }}
+          </span>
         </div>
         <div class="qty">
           <button type="button" class="btn btn-ghost" [disabled]="busy()" (click)="changeQuantity(item, -1)">−</button>

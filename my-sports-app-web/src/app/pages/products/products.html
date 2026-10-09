@@ -1,3 +1,5 @@
+<app-promo-carousel [products]="promotions()" />
+
 <section class="toolbar">
   <h1>Produtos</h1>
   <input
@@ -29,13 +31,23 @@
   <div class="grid">
     @for (p of products(); track p.id) {
       <article class="card product">
-        <img [src]="p.image + '?w=400&h=300&fit=crop'" [alt]="p.name" loading="lazy" />
+        <a [routerLink]="['/products', p.id]" class="image-link">
+          @if (p.onPromotion) {
+            <span class="discount-badge">-{{ discountPercent(p) }}%</span>
+          }
+          <img [src]="p.image + '?w=400&h=300&fit=crop'" [alt]="p.name" loading="lazy" />
+        </a>
         <div class="product-body">
           <span class="tag">{{ p.category }}</span>
-          <h2>{{ p.name }}</h2>
+          <h2><a [routerLink]="['/products', p.id]">{{ p.name }}</a></h2>
           <p class="description">{{ p.description }}</p>
           <div class="product-footer">
-            <strong class="price">{{ p.price | currency: 'BRL' }}</strong>
+            <div class="price">
+              @if (p.onPromotion) {
+                <s class="old-price">{{ p.price | currency: 'BRL' }}</s>
+              }
+              <strong>{{ p.effectivePrice | currency: 'BRL' }}</strong>
+            </div>
             @if (p.stock > 0) {
               <div class="qty">
                 <button

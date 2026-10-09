@@ -1,0 +1,63 @@
+@if (slides().length) {
+  <section
+    class="carousel"
+    aria-roledescription="carrossel"
+    aria-label="Promoções do dia"
+    (mouseenter)="setPaused(true)"
+    (mouseleave)="setPaused(false)"
+    (focusin)="setPaused(true)"
+    (focusout)="setPaused(false)"
+    (keydown.arrowLeft)="prev()"
+    (keydown.arrowRight)="next()"
+  >
+    <div
+      class="track"
+      [style.transform]="'translateX(-' + current() * 100 + '%)'"
+      (pointerdown)="onPointerDown($event)"
+      (pointerup)="onPointerUp($event)"
+    >
+      @for (p of slides(); track p.id; let i = $index) {
+        <a
+          class="slide"
+          [href]="productHref(p)"
+          [style.background]="themes[i % themes.length]"
+          [inert]="i !== current()"
+          [attr.aria-hidden]="i !== current()"
+          aria-roledescription="slide"
+          [attr.aria-label]="'Oferta ' + (i + 1) + ' de ' + slides().length + ': ' + p.name"
+          (click)="onSlideClick($event, p)"
+        >
+          <div class="text">
+            <span class="badge">{{ discountPercent(p) }}% OFF</span>
+            <span class="category">{{ p.category }}</span>
+            <h2>{{ p.name }}</h2>
+            <p class="price">
+              <small>de <s>{{ p.price | currency: 'BRL' }}</s> por</small>
+              <strong>{{ p.effectivePrice | currency: 'BRL' }}</strong>
+            </p>
+            <span class="cta">Ver oferta ›</span>
+          </div>
+          <img [src]="p.image + '?w=640&h=480&fit=crop'" [alt]="" draggable="false" />
+        </a>
+      }
+    </div>
+
+    @if (slides().length > 1) {
+      <button type="button" class="arrow prev" aria-label="Oferta anterior" (click)="prev()">‹</button>
+      <button type="button" class="arrow next" aria-label="Próxima oferta" (click)="next()">›</button>
+
+      <div class="dots">
+        @for (p of slides(); track p.id; let i = $index) {
+          <button
+            type="button"
+            class="dot"
+            [class.active]="i === current()"
+            [attr.aria-label]="'Ir para a oferta ' + (i + 1)"
+            [attr.aria-current]="i === current()"
+            (click)="goTo(i)"
+          ></button>
+        }
+      </div>
+    }
+  </section>
+}

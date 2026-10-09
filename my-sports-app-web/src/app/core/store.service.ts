@@ -14,6 +14,15 @@ export class ProductService {
     return this.http.get<Product[]>('/api/products', { params });
   }
 
+  /** Products on promotion, biggest discount first. */
+  promotions(): Observable<Product[]> {
+    return this.http.get<Product[]>('/api/products/promotions');
+  }
+
+  findById(id: string): Observable<Product> {
+    return this.http.get<Product>(`/api/products/${id}`);
+  }
+
   categories(): Observable<string[]> {
     return this.http.get<string[]>('/api/products/categories');
   }

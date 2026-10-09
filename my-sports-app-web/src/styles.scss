@@ -175,6 +175,24 @@ input[type='search'] {
   }
 }
 
+.old-price {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: #ffd400;
+  color: #1a1a1a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
 .alert {
   padding: 0.7rem 1rem;
   border-radius: 8px;

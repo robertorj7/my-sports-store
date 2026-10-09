@@ -23,6 +23,10 @@ export interface Product {
   color: string;
   category: string;
   stock: number;
+  promotionalPrice: number | null;
+  /** Price actually charged: the promotional price when on promotion, otherwise the regular price. */
+  effectivePrice: number;
+  onPromotion: boolean;
 }
 
 export interface CartLineItem {
@@ -30,6 +34,7 @@ export interface CartLineItem {
   name: string;
   image: string;
   price: number;
+  originalPrice: number;
   quantity: number;
   lineTotal: number;
 }
