@@ -24,6 +24,9 @@
           </li>
         }
       </ul>
+      @if (order.status === 'PENDING') {
+        <p class="muted pending-hint">Aguardando confirmação do pagamento...</p>
+      }
       <footer>
         Total: <strong>{{ order.total | currency: 'BRL' }}</strong>
       </footer>

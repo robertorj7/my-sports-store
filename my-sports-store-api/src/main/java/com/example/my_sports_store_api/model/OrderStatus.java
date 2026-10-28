@@ -5,5 +5,14 @@ public enum OrderStatus {
     PAID,
     SHIPPED,
     DELIVERED,
-    CANCELLED
+    CANCELLED;
+
+    public boolean canTransitionTo(OrderStatus next) {
+        return switch (this) {
+            case PENDING -> next == PAID || next == CANCELLED;
+            case PAID -> next == SHIPPED || next == CANCELLED;
+            case SHIPPED -> next == DELIVERED;
+            case DELIVERED, CANCELLED -> false;
+        };
+    }
 }

@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { errorMessage } from '../../core/error-message';
 import { Order, OrderStatus } from '../../core/models';
 import { OrderService } from '../../core/store.service';
@@ -12,6 +12,9 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: 'Cancelado',
 };
 
+/** Payment is confirmed asynchronously, so pending orders are refreshed until they settle. */
+export const PENDING_POLL_INTERVAL_MS = 3000;
+
 @Component({
   selector: 'app-orders',
   imports: [CurrencyPipe, DatePipe],
@@ -20,6 +23,8 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 })
 export class Orders implements OnInit {
   private readonly orderService = inject(OrderService);
+  private readonly destroyRef = inject(DestroyRef);
+  private pollTimer?: ReturnType<typeof setTimeout>;
 
   protected readonly orders = signal<Order[]>([]);
   protected readonly loading = signal(true);
@@ -27,10 +32,18 @@ export class Orders implements OnInit {
   protected readonly statusLabels = STATUS_LABELS;
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => clearTimeout(this.pollTimer));
+    this.load();
+  }
+
+  private load(): void {
     this.orderService.findMine().subscribe({
       next: (orders) => {
         this.orders.set([...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
         this.loading.set(false);
+        if (orders.some((order) => order.status === 'PENDING')) {
+          this.pollTimer = setTimeout(() => this.load(), PENDING_POLL_INTERVAL_MS);
+        }
       },
       error: (err: unknown) => {
         this.error.set(errorMessage(err));
